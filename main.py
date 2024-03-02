@@ -17,13 +17,14 @@ from datetime import timedelta
 import utils
 import pytorch_lightning as pl
 from datasets.coco_eval import CocoEvaluator
+from datasets.create_oak_instance import task_info_oak
 from engine import local_trainer, Evaluator
 # from transformers import AutoImageProcessor
 from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch import seed_everything
 # from lightning.pytorch.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from datasets.coco_hug import CocoDetection, task_info_coco, create_task_json
+from datasets.coco_hug import CocoDetection
 # from transformers.models.deformable_detr.configuration_deformable_detr import DeformableDetrConfig
 # from transformers.models.deformable_detr.modeling_deformable_detr import DeformableDetrForObjectDetection 
 from transformers_local.models.deformable_detr.image_processing_deformable_detr import DeformableDetrImageProcessor 
@@ -138,7 +139,7 @@ def main(args):
     args.iou_types = ['bbox']
     out_dir_root = args.output_dir
     
-    args.task_map, args.task_label2name =  task_info_coco(split_point=args.split_point)
+    args.task_map, args.task_label2name =  task_info_oak(split_point=args.split_point)
     args.task_label2name[args.n_classes-1] = "BG"
 
     if args.repo_name:
