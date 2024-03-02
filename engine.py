@@ -10,11 +10,9 @@ import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 from datasets.coco_eval import CocoEvaluator
-from datasets.coco_hug import CocoDetection, task_info_coco, create_task_json
-from transformers_local.models.deformable_detr.image_processing_deformable_detr import DeformableDetrImageProcessor 
+from transformers_local.models.deformable_detr.image_processing_deformable_detr import DeformableDetrImageProcessor
 from transformers_local.models.deformable_detr.configuration_deformable_detr import DeformableDetrConfig
 from transformers_local.models.deformable_detr.modeling_deformable_detr import DeformableDetrForObjectDetection
-
 class local_trainer(pl.LightningModule):
 	def __init__(self, train_loader, val_loader, test_dataset, args, local_evaluator, task_id):
 		super().__init__()
@@ -83,7 +81,6 @@ class local_trainer(pl.LightningModule):
 		else:
 			query = None
 
-		#pdb.set_trace()
 		outputs = self.model(pixel_values=pixel_values, pixel_mask=pixel_mask, labels=labels, query=query, train=True, task_id=self.task_id)
 
 		loss = outputs.loss
@@ -106,9 +103,7 @@ class local_trainer(pl.LightningModule):
 		return loss, loss_dict
 	
 	def training_step(self, batch, batch_idx): # automatic training schedule
-		# if batch_idx > 10:
-		# 	self.trainer.should_stop = True
-		
+
 		loss, loss_dict = self.common_step(batch, batch_idx)
 		# logs metrics for each training_step,
 		# and the average across the epoch
@@ -123,9 +118,9 @@ class local_trainer(pl.LightningModule):
 
 	def on_after_backward(self, *args):
 		# pdb.set_trace()
-		for i in range(len(self.model.class_embed)):
-			self.model.class_embed[i].weight.grad[:self.PREV_INTRODUCED_CLS,:] = 0
-			self.model.class_embed[i].bias.grad[:self.PREV_INTRODUCED_CLS] = 0
+		# for i in range(len(self.model.class_embed)):
+		# 	self.model.class_embed[i].weight.grad[:self.PREV_INTRODUCED_CLS,:] = 0
+		# 	self.model.class_embed[i].bias.grad[:self.PREV_INTRODUCED_CLS] = 0
 		# print ('begin',self.model.class_embed[0].weight[:self.PREV_INTRODUCED_CLS,:].norm())
 		# print ('begin',self.model.class_embed[0].weight[self.PREV_INTRODUCED_CLS:,:].norm())
 		return
@@ -423,14 +418,12 @@ class Evaluator():
 			# 	outputs = model(pixel_values=pixel_values, pixel_mask=pixel_mask)
 
 			if self.args.use_prompts:
-				#pdb.set_trace()
 				with torch.no_grad():
 					outputs = model(pixel_values=pixel_values, pixel_mask=pixel_mask, train=False)
 					query = outputs.last_hidden_state.mean(dim=1)
 			else:
 				query = None
 
-			#pdb.set_trace()
 			outputs = self.model(pixel_values=pixel_values, pixel_mask=pixel_mask, query=query, train=False)
 
 			if self.args.mask_gradients:
@@ -442,8 +435,6 @@ class Evaluator():
 															threshold=0) # convert outputs to COCO api
 			res = {target['image_id'].item(): output for target, output in zip(labels, results)}
 			res = self.prepare_for_coco_detection(res)
-			#pdb.set_trace()
-			#print (res)
 			coco_evaluator.update(res)
 
 		coco_evaluator.synchronize_between_processes()
