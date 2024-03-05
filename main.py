@@ -17,6 +17,7 @@ from datetime import timedelta
 import utils
 import pytorch_lightning as pl
 from datasets.coco_eval import CocoEvaluator
+from datasets.create_voc_instance import task_info_voc_10
 from engine import local_trainer, Evaluator
 # from transformers import AutoImageProcessor
 from lightning.pytorch.loggers import CSVLogger
@@ -142,7 +143,7 @@ def main(args):
     args.iou_types = ['bbox']
     out_dir_root = args.output_dir
     
-    args.task_map, args.task_label2name =  task_info_coco(split_point=args.split_point)
+    args.task_map, args.task_label2name =  task_info_voc_10(split_point=args.split_point)
     args.task_label2name[args.n_classes-1] = "BG"
 
     if args.repo_name:
