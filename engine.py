@@ -130,16 +130,17 @@ class local_trainer(pl.LightningModule):
 					query_wt = self.model.model.prompts.query_tf(query.view(query.shape[0],-1))
 					query_loss = F.cross_entropy(query_wt, one_hot_proposals)
 					
-				if self.args.bg_thres and not return_outputs:
-					results = self.processor.post_process(outputs, target_sizes=orig_target_sizes, bg_thres_topk=self.args.bg_thres_topk)
 		else:
 			query = None
-		
+
 		# BG thresholding on previously seen classes
 		# pdb.set_trace()
 
 		if self.args.bg_thres and not return_outputs:
+			results = self.processor.post_process(outputs, target_sizes=orig_target_sizes,
+												  bg_thres_topk=self.args.bg_thres_topk)
 			labels = self.BG_thresholding(results=results, labels=labels)
+
 
 		outputs = self.model(pixel_values=pixel_values, pixel_mask=pixel_mask, labels=labels, query=query, train=True, task_id=self.task_id)
 
